@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Task &amp; Habit Tracker</title>
+<meta name="description" content="Fully customizable task and habit tracker. Every day shown, no day skipped. Works offline.">
+<meta name="theme-color" content="#0f766e" id="meta-theme-color">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">✓</span><div><h1>Task &amp; Habit Tracker</h1><p class="tagline">Every day counts. No day skipped.</p></div></div>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">☾</button>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab active" data-tab="today" role="tab" aria-selected="true">Today</button>
+    <button class="tab" data-tab="calendar" role="tab" aria-selected="false">Calendar</button>
+    <button class="tab" data-tab="manage" role="tab" aria-selected="false">Manage</button>
+    <button class="tab" data-tab="stats" role="tab" aria-selected="false">Stats</button>
+  </nav>
+</header>
+
+<main class="layout">
+  <!-- TODAY -->
+  <section id="panel-today" class="panel active" role="tabpanel">
+    <div class="card">
+      <div class="card-head"><h2 id="today-title">Today</h2><span id="today-progress" class="count"></span></div>
+      <div class="progress"><div id="today-bar" class="progress-bar"></div></div>
+      <p class="hint" id="today-hint"></p>
+    </div>
+    <div class="card"><div class="card-head"><h2>Today's habits</h2><button class="btn-small" id="add-habit-today">+ Habit</button></div>
+      <p id="today-habits-empty" class="empty" hidden>No habit scheduled today. Add one in Manage, or change its days.</p>
+      <ul id="today-habits" class="item-list"></ul></div>
+    <div class="card"><div class="card-head"><h2>Tasks</h2><button class="btn-small" id="add-task-today">+ Task</button></div>
+      <p id="today-tasks-empty" class="empty" hidden>No open tasks. Nice and clear.</p>
+      <ul id="today-tasks" class="item-list"></ul></div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="panel-calendar" class="panel" role="tabpanel" hidden>
+    <div class="card wide">
+      <div class="card-head wrap">
+        <h2>Calendar — no gaps</h2>
+        <label class="select-wrap">Habit
+          <select id="cal-habit" aria-label="Habit to show in calendar"></select>
+        </label>
+      </div>
+      <p class="hint">Green = done · Amber = partly done · Red = missed (a scheduled day you didn't do) · Grey = not scheduled · Outline = upcoming. Tap any day to see it, and to fill a past day you missed.</p>
+      <div class="cal-nav">
+        <button id="cal-prev" class="btn-small" aria-label="Previous month">◀</button>
+        <strong id="cal-title"></strong>
+        <button id="cal-next" class="btn-small" aria-label="Next month">▶</button>
+        <button id="cal-today-btn" class="btn-small">Today</button>
+      </div>
+      <div class="cal-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+      <div id="cal-grid" class="cal-grid"></div>
+      <div id="cal-legend" class="legend">
+        <span><i class="dot done"></i> Done</span><span><i class="dot partial"></i> Partial</span><span><i class="dot missed"></i> Missed</span><span><i class="dot upcoming"></i> Upcoming</span><span><i class="dot none"></i> Not scheduled</span>
+      </div>
+    </div>
+    <div class="card wide" id="day-detail-card">
+      <div class="card-head"><h2 id="day-detail-title">Pick a day</h2></div>
+      <div id="day-detail"></div>
+    </div>
+  </section>
+
+  <!-- MANAGE -->
+  <section id="panel-manage" class="panel" role="tabpanel" hidden>
+    <div class="card wide">
+      <div class="card-head wrap"><h2>Manage — everything is customizable</h2>
+        <span><button class="btn-small" id="btn-sample">Add examples</button> <button class="btn-small" id="btn-export">Export JSON</button> <button class="btn-small" id="btn-csv">Export CSV</button> <label class="btn-small file-btn">Import JSON<input type="file" id="file-import" accept=".json,application/json" hidden></label></span>
+      </div>
+      <p class="hint">Edit any item: name, icon, colour, notes, frequency, days, target per day, start/end date, priority, due date and reminder. Nothing is fixed.</p>
+      <div class="manage-grid">
+        <div>
+          <h3>Habits</h3>
+          <form id="habit-form" class="form" autocomplete="off">
+            <input id="habit-name" placeholder="Habit name, e.g. Read 20 pages" maxlength="80" required>
+            <div class="row">
+              <label>Icon <input id="habit-icon" value="📚" maxlength="4" aria-label="Habit icon"></label>
+              <label>Colour <input id="habit-color" type="color" value="#0f766e" aria-label="Habit colour"></label>
+              <label>Target / day <input id="habit-target" type="number" min="1" max="20" value="1" aria-label="Target per day"></label>
+            </div>
+            <div class="row">
+              <label>Frequency
+                <select id="habit-freq">
+                  <option value="daily">Every day</option>
+                  <option value="weekdays">Weekdays (Mon–Fri)</option>
+                  <option value="weekends">Weekends</option>
+                  <option value="custom">Custom days</option>
+                </select>
+              </label>
+              <label>Start <input id="habit-start" type="date" aria-label="Start date"></label>
+              <label>End (optional) <input id="habit-end" type="date" aria-label="End date"></label>
+            </div>
+            <div id="habit-days" class="days-row" hidden>
+              <label><input type="checkbox" value="0"> Sun</label><label><input type="checkbox" value="1" checked> Mon</label><label><input type="checkbox" value="2" checked> Tue</label><label><input type="checkbox" value="3" checked> Wed</label><label><input type="checkbox" value="4" checked> Thu</label><label><input type="checkbox" value="5" checked> Fri</label><label><input type="checkbox" value="6"> Sat</label>
+            </div>
+            <div class="row">
+              <label>Reminder (optional) <input id="habit-reminder" type="time" aria-label="Reminder time"></label>
+              <input id="habit-notes" placeholder="Notes (optional)" maxlength="200">
+            </div>
+            <button class="btn-primary" type="submit">Add habit</button>
+          </form>
+          <ul id="manage-habits" class="item-list"></ul>
+        </div>
+        <div>
+          <h3>Tasks</h3>
+          <form id="task-form" class="form" autocomplete="off">
+            <input id="task-title" placeholder="Task, e.g. Finish RMS notes" maxlength="140" required>
+            <div class="row">
+              <label>Priority
+                <select id="task-priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
+              </label>
+              <label>Due <input id="task-due" type="date" aria-label="Due date"></label>
+              <label>Colour <input id="task-color" type="color" value="#7c3aed" aria-label="Task colour"></label>
+            </div>
+            <div class="row">
+              <label>Category <input id="task-category" placeholder="e.g. Study" maxlength="40"></label>
+              <label>Repeat
+                <select id="task-repeat"><option value="none">No repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+              </label>
+            </div>
+            <input id="task-notes" placeholder="Notes (optional)" maxlength="200">
+            <button class="btn-primary" type="submit">Add task</button>
+          </form>
+          <ul id="manage-tasks" class="item-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="panel-stats" class="panel" role="tabpanel" hidden>
+    <div class="card wide"><div class="card-head"><h2>Stats — over all days, not just this week</h2></div>
+      <div id="stats-list"></div>
+      <p class="hint">Missed days count honestly here. A streak only counts scheduled days in a row, so a not-scheduled day never breaks it — but a scheduled day you missed does.</p>
+    </div>
+  </section>
+</main>
+
+<!-- EDIT DIALOG -->
+<dialog id="edit-dialog">
+  <form method="dialog" id="edit-form" class="form">
+    <h3 id="edit-title">Edit item</h3>
+    <div id="edit-fields"></div>
+    <div class="row end"><button class="btn-small" value="cancel" type="submit">Cancel</button><button class="btn-primary" id="edit-save" type="button">Save changes</button></div>
+  </form>
+</dialog>
+
+<footer class="app-footer"><p>Works offline · Data stays on your device · Export any time so you never lose it</p></footer>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
